@@ -1,8 +1,8 @@
 {
-    "name": "watoki/steps",
+    "name": "watoki/stepper",
     "description": "A minimal migration tool for PHP.",
     "keywords": ["migration", "watoki"],
-    "homepage": "http://github.com/watoki/steps",
+    "homepage": "http://github.com/watoki/stepper",
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -17,8 +17,8 @@
     },
     "autoload": {
         "psr-0": {
-            "watoki\\steps": "src/",
-            "spec\\watoki\\steps": ""
+            "watoki\\stepper": "src/",
+            "spec\\watoki\\stepper": ""
         }
     },
     "minimum-stability": "dev"

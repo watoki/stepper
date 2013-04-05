@@ -1,5 +1,5 @@
 <?php
-namespace watoki\steps;
+namespace watoki\stepper;
  
 class Migrater {
 

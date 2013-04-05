@@ -1,7 +1,7 @@
 <?php
-namespace spec\watoki\steps;
+namespace spec\watoki\stepper;
 
-use watoki\steps\Migrater;
+use watoki\stepper\Migrater;
 
 /**
  * @property StepsTest_Given given
@@ -181,7 +181,7 @@ class StepsTest_Given {
         $this->namespace = $refl->getNamespaceName() . '\\' . $this->stepFolderName;
 
         file_put_contents($this->stepFolder . '/' . $stepName . '.php', "<?php namespace {$this->namespace};
-        class {$stepName} implements \\watoki\\steps\\Step {
+        class {$stepName} implements \\watoki\\stepper\\Step {
 
             public function up() {
                 file_put_contents(__DIR__ . '/out', \"$up\", FILE_APPEND);
