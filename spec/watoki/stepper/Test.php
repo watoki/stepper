@@ -49,7 +49,7 @@ abstract class Test_Given {
     }
 
     public function theFile($name) {
-        $this->theFile_WithContent($name, '');
+        return $this->theFile_WithContent($name, '');
     }
 
     public function theFile_WithContent($name, $content) {
