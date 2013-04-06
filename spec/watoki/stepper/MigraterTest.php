@@ -8,9 +8,7 @@ use watoki\stepper\Migrater;
  * @property StepsTest_When when
  * @property StepsTest_Then then
  */
-class StepsTest extends \PHPUnit_Framework_TestCase {
-
-    public $undos = array();
+class MigraterTest extends Test {
 
     public function testNoSteps() {
         $this->given->theStepsContainingFolder('stepstestnone');
@@ -112,19 +110,12 @@ class StepsTest extends \PHPUnit_Framework_TestCase {
         $this->then->test = $this;
     }
 
-    protected function tearDown() {
-        foreach ($this->undos as $undo) {
-            $undo();
-        }
-        parent::tearDown();
-    }
-
 }
 
 /**
- * @property StepsTest test
+ * @property MigraterTest test
  */
-class StepsTest_Given {
+class StepsTest_Given extends Test_Given {
 
     public $stepFolder;
 
@@ -137,43 +128,14 @@ class StepsTest_Given {
     public $stateFile;
 
     public function theStepsContainingFolder($name) {
-        $folder = __DIR__ . '/' . $name;
+        $folder = $this->theFolder($name);
 
         $this->stepFolderName = $name;
         $this->stepFolder = $folder;
 
-        $this->cleanUp($folder);
-        mkdir($folder);
-
-        $that = $this;
-        $this->test->undos[] = function () use ($that, $folder) {
-            $that->cleanUp($folder);
-        };
-
-        $this->outFile = __DIR__ . '/' . $name . '/out';
-        $this->theFile($this->outFile);
+        $this->outFile = $this->theFile($name . '/out');
 
         $this->stateFile = __DIR__ . '/' . $this->test->given->stepFolderName . '/' . 'current';
-    }
-
-    public function cleanUp($folder) {
-        if (!file_exists($folder)) {
-            return true;
-        }
-
-        do {
-            $items = glob(rtrim($folder, '/') . '/' . '*');
-            foreach ($items as $item) {
-                is_dir($item) ? $this->cleanUp($item) : unlink($item);
-            }
-        } while ($items);
-
-        return rmdir($folder);
-    }
-
-    public function theFile($file) {
-        $fh = fopen($file, 'w');
-        fclose($fh);
     }
 
     public function theStep_WithTheUpOutput_AndTheDownOutput($stepName, $up, $down) {
@@ -200,7 +162,7 @@ class StepsTest_Given {
 }
 
 /**
- * @property StepsTest test
+ * @property MigraterTest test
  */
 class StepsTest_When {
 
@@ -228,7 +190,7 @@ class StepsTest_When {
 }
 
 /**
- * @property StepsTest test
+ * @property MigraterTest test
  */
 class StepsTest_Then {
 

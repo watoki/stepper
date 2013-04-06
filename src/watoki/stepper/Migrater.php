@@ -3,6 +3,8 @@ namespace watoki\stepper;
  
 class Migrater {
 
+    static $CLASS = __CLASS__;
+
     private $namespace;
 
     private $stateFile;
@@ -17,16 +19,23 @@ class Migrater {
     }
 
     public function migrate($to = null) {
-        $start = 0;
-        if (file_exists($this->stateFile)) {
-            $start = intval(file_get_contents($this->stateFile));
-        }
+        $start = $this->getStart();
 
         if ($start === $to) {
             return;
         }
 
         $this->migrateRange($start, $to);
+    }
+
+    /**
+     * @return int
+     */
+    public function getStart() {
+        if (file_exists($this->stateFile)) {
+            return intval(file_get_contents($this->stateFile));
+        }
+        return 0;
     }
 
     private function migrateRange($from, $to) {
