@@ -18,9 +18,10 @@ class MigrateCommand extends Command {
     private $cwd;
 
     public function __construct(Factory $factory, $cwd) {
-        parent::__construct('migrate');
         $this->factory = $factory;
         $this->cwd = $cwd;
+
+        parent::__construct('migrate');
     }
 
     protected function configure() {
@@ -31,7 +32,7 @@ class MigrateCommand extends Command {
         $this->addArgument('target', InputArgument::OPTIONAL,
             'Number of the target step (last step if omitted)', null);
         $this->addOption('config', 'c', InputArgument::OPTIONAL,
-            'Path to config file', 'config/stepper.json');
+            'Path to config file', $this->cwd . '/config/stepper.json');
         $this->addConfigurableOption('bootstrap', 'Path to bootstrap file');
         $this->addConfigurableOption('namespace', 'Namespace of StepX classes');
         $this->addConfigurableOption('state', 'Path to file containing current step');
@@ -42,7 +43,27 @@ class MigrateCommand extends Command {
     }
 
     private function getConfigurableOption($name, InputInterface $input) {
-        return $input->getOption($name);
+        $option = $input->getOption($name);
+
+        if ($option !== null) {
+            return $option;
+        }
+
+        $configFile = $input->getOption('config');
+        if ($configFile && file_exists($configFile)) {
+            $content = file_get_contents($configFile);
+            $config = json_decode($content, true);
+
+            if (!$config) {
+                throw new \Exception("Could not parse [$configFile]: " . $content);
+            }
+
+            if (array_key_exists($name, $config)) {
+                return $config[$name];
+            }
+        }
+
+        throw new \Exception("Option [$name] is missing.");
     }
 
     protected function execute(InputInterface $input, OutputInterface $output) {

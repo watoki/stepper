@@ -55,7 +55,7 @@ abstract class Test_Given {
     public function theFile_WithContent($name, $content) {
         $file = __DIR__ . '/' . $name;
 
-        file_put_contents($file, $content);
+        file_put_contents($file, utf8_encode($content));
 
         return $file;
     }
