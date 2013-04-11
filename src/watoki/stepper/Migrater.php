@@ -1,19 +1,34 @@
 <?php
 namespace watoki\stepper;
  
+use watoki\factory\Factory;
+
 class Migrater {
 
     static $CLASS = __CLASS__;
 
+    /**
+     * @var \watoki\factory\Factory
+     */
+    private $factory;
+
+    /**
+     * @var string
+     */
     private $namespace;
 
+    /**
+     * @var string
+     */
     private $stateFile;
 
     /**
+     * @param \watoki\factory\Factory $factory
      * @param string $namespace
      * @param string $stateFile
      */
-    function __construct($namespace, $stateFile) {
+    function __construct(Factory $factory, $namespace, $stateFile) {
+        $this->factory = $factory;
         $this->namespace = $namespace;
         $this->stateFile = $stateFile;
     }
@@ -58,13 +73,19 @@ class Migrater {
                 break;
             }
 
-            /** @var $step Step */
-            $step = new $class;
-            $step->up();
+            $this->createStep($class)->up();
 
             $from++;
         }
         return $from;
+    }
+
+    /**
+     * @param $class
+     * @return Step
+     */
+    private function createStep($class) {
+        return $this->factory->getInstance($class);
     }
 
     private function migrateDown($from, $to) {
@@ -75,9 +96,7 @@ class Migrater {
                 break;
             }
 
-            /** @var $step Step */
-            $step = new $class;
-            $step->down();
+            $this->createStep($class)->down();
 
             $from--;
         }

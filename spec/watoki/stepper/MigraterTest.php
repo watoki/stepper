@@ -184,7 +184,7 @@ class StepsTest_When {
     }
 
     public function iMigrateToStep($num) {
-        $migrater = new Migrater($this->test->given->namespace, $this->test->given->stateFile);
+        $migrater = new Migrater($this->test->factory, $this->test->given->namespace, $this->test->given->stateFile);
         $migrater->migrate($num);
     }
 }

@@ -1,9 +1,22 @@
 <?php
 namespace spec\watoki\stepper;
 
+use watoki\factory\Factory;
+
 abstract class Test extends \PHPUnit_Framework_TestCase {
 
     public $undos = array();
+
+    /**
+     * @var Factory
+     */
+    public $factory;
+
+    protected function setUp() {
+        parent::setUp();
+
+        $this->factory = new Factory();
+    }
 
     protected function tearDown() {
         foreach ($this->undos as $undo) {
