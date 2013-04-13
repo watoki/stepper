@@ -91,7 +91,14 @@ class MigrateCommandTest extends Test {
 class MigrateCommandTest_Given extends Test_Given {
 
     public function theBootstrapFile($name) {
-        $this->theFile_WithContent($name, '<?php global $bootstrapIncluded; $bootstrapIncluded = true;');
+        global $factory;
+        $factory = $this->test->when->factoryMock;
+        $this->theFile_WithContent($name, '<?php
+            global $bootstrapIncluded;
+            $bootstrapIncluded = true;
+
+            global $factory;
+            return $factory;');
     }
 }
 
@@ -103,7 +110,7 @@ class MigrateCommandTest_When {
     /**
      * @var Factory|Mock
      */
-    public $factory;
+    public $factoryMock;
 
     /**
      * @var Mock
@@ -118,17 +125,17 @@ class MigrateCommandTest_When {
     function __construct() {
         $mf = new MockFactory();
 
-        $this->factory = $mf->createMock(Factory::$CLASS);
+        $this->factoryMock = $mf->createMock(Factory::$CLASS);
 
         $this->migrater = $mf->createMock(Migrater::$CLASS);
-        $this->factory->__mock()->method('getInstance')->willReturn($this->migrater);
+        $this->factoryMock->__mock()->method('getInstance')->willReturn($this->migrater);
     }
 
     /**
      * @return MigrateCommand
      */
     private function getCommand() {
-        return new MigrateCommand($this->factory, __DIR__);
+        return new MigrateCommand(__DIR__);
     }
 
     function iExecuteTheCommandWithBootstrap_Namespace_State_AndTarget($bootstrapFile, $namespace, $stateFile, $target) {
@@ -172,7 +179,9 @@ class MigrateCommandTest_When {
 class MigrateCommandTest_Then {
 
     public function theMigraterContructorArgument_ShouldBe($key, $value) {
-        $args = $this->test->when->factory->__mock()->method('getInstance')->getCalledArgumentAt(0, 1);
+        $method = $this->test->when->factoryMock->__mock()->method('getInstance');
+        $this->test->assertEquals(1, $method->getCalledCount());
+        $args = $method->getCalledArgumentAt(0, 1);
         $this->test->assertEquals($value, $args[$key]);
     }
 

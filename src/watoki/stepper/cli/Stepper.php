@@ -16,7 +16,7 @@ class Stepper extends Application {
         $factory = new Factory();
 
         $this->addCommands(array(
-            new MigrateCommand($factory, $cwd)
+            new MigrateCommand($cwd)
         ));
     }
 

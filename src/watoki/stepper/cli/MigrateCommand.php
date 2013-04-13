@@ -10,15 +10,9 @@ use watoki\stepper\Migrater;
 
 class MigrateCommand extends Command {
 
-    /**
-     * @var \watoki\factory\Factory
-     */
-    private $factory;
-
     private $cwd;
 
-    public function __construct(Factory $factory, $cwd) {
-        $this->factory = $factory;
+    public function __construct($cwd) {
         $this->cwd = $cwd;
 
         parent::__construct('migrate');
@@ -33,7 +27,7 @@ class MigrateCommand extends Command {
             'Number of the target step (last step if omitted)', null);
         $this->addOption('config', 'c', InputArgument::OPTIONAL,
             'Path to config file', $this->cwd . '/config/stepper.json');
-        $this->addConfigurableOption('bootstrap', 'Path to bootstrap file');
+        $this->addConfigurableOption('bootstrap', 'Path to bootstrap file that returns a Factory');
         $this->addConfigurableOption('namespace', 'Namespace of StepX classes');
         $this->addConfigurableOption('state', 'Path to file containing current step');
     }
@@ -67,10 +61,10 @@ class MigrateCommand extends Command {
     }
 
     protected function execute(InputInterface $input, OutputInterface $output) {
-        require_once $this->getConfigurableOption('bootstrap', $input);
+        $factory = include $this->getConfigurableOption('bootstrap', $input);
 
         /** @var $migrater Migrater */
-        $migrater = $this->factory->getInstance(Migrater::$CLASS, array(
+        $migrater = $factory->getInstance(Migrater::$CLASS, array(
             'namespace' => $this->getConfigurableOption('namespace', $input),
             'stateFile' => $this->getConfigurableOption('state', $input)
         ));
