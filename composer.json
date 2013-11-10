@@ -14,7 +14,7 @@
     ],
     "require": {
         "php": ">=5.3.8",
-        "symfony/console" : "2.2.*",
+        "symfony/console" : "2.2.9",
         "watoki/factory": "*"
     },
     "require-dev": {
