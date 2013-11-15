@@ -14,11 +14,12 @@
     ],
     "require": {
         "php": ">=5.3.8",
-        "symfony/console" : "2.2.9",
+        "watoki/cli" : "*",
+        "watoki/smokey": "*",
         "watoki/factory": "*"
     },
     "require-dev": {
-        "rtens/mockster": "1.*"
+        "watoki/scrut": "*"
     },
     "autoload": {
         "psr-0": {

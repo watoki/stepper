@@ -1,114 +1,48 @@
 <?php
 namespace watoki\stepper;
  
-use watoki\factory\Factory;
+use watoki\smokey\EventDispatcher;
 
 class Migrater {
 
     static $CLASS = __CLASS__;
 
-    /**
-     * @var \watoki\factory\Factory
-     */
-    private $factory;
+    /** @var Step */
+    private $first;
+
+    /** @var string */
+    private $state;
+
+    /** @var null|EventDispatcher */
+    private $dispatcher;
 
     /**
-     * @var string
+     * @param Step $first First step in the chained list of steps
+     * @param string $state Class name of last applied Step
      */
-    private $namespace;
-
-    /**
-     * @var string
-     */
-    private $stateFile;
-
-    /**
-     * @param \watoki\factory\Factory $factory
-     * @param string $namespace
-     * @param string $stateFile
-     */
-    function __construct(Factory $factory, $namespace, $stateFile) {
-        $this->factory = $factory;
-        $this->namespace = $namespace;
-        $this->stateFile = $stateFile;
+    function __construct(Step $first, $state) {
+        $this->first = $first;
+        $this->state = $state;
     }
 
+    /**
+     * @see \watoki\stepper\events\MigrationEvent
+     * @param string $event Name of event class (must implement MigrationEvent)
+     * @param callable $listener
+     */
+    public function on($event, $listener) {
+        if (!$this->dispatcher) {
+            $this->dispatcher = new EventDispatcher();
+        }
+        $this->dispatcher->addListener($event, $listener);
+    }
+
+    /**
+     * @param string|null $to Name of the step class to migrate to (defaults to last step)
+     * @throws \Exception If
+     * @return void
+     */
     public function migrate($to = null) {
-        $start = $this->getStart();
-
-        if ($start === $to) {
-            return;
-        }
-
-        $this->migrateRange($start, $to);
-    }
-
-    /**
-     * @return int
-     */
-    public function getStart() {
-        if (file_exists($this->stateFile)) {
-            return intval(file_get_contents($this->stateFile));
-        }
-        return 0;
-    }
-
-    private function migrateRange($from, $to) {
-        if ($to == null || $to > $from) {
-            $num = $this->migrateUp($from, $to);
-        } else {
-            $num = $this->migrateDown($from, $to);
-        }
-
-        if ($num != $from) {
-            file_put_contents($this->stateFile, $num);
-        }
-    }
-
-    private function migrateUp($from, $to) {
-        while (true) {
-            $class = $this->getStepClass($from + 1);
-
-            if (!class_exists($class) || $from === $to) {
-                break;
-            }
-
-            $this->createStep($class)->up();
-
-            $from++;
-        }
-        return $from;
-    }
-
-    /**
-     * @param $class
-     * @return Step
-     */
-    private function createStep($class) {
-        return $this->factory->getInstance($class);
-    }
-
-    private function migrateDown($from, $to) {
-        while (true) {
-            $class = $this->getStepClass($from);
-
-            if (!class_exists($class) || $from === $to) {
-                break;
-            }
-
-            $this->createStep($class)->down();
-
-            $from--;
-        }
-        return $from;
-    }
-
-    /**
-     * @param $num
-     * @return string
-     */
-    private function getStepClass($num) {
-        return $this->namespace . '\\' . 'Step' . $num;
     }
 
 }
