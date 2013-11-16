@@ -58,7 +58,16 @@ class MigraterTest extends Specification {
     }
 
     public function testTargetIsCurrentState() {
-        $this->markTestIncomplete();
+        $this->givenTheCurrentStateIs('SameStateTwo');
+
+        $this->givenTheStep_WithTheNextStep('SameStateOne', 'SameStateTwo');
+        $this->givenTheStep_WithTheNextStep('SameStateTwo', 'SameStateThree');
+        $this->givenTheStep('SameStateThree');
+
+        $this->whenIStartTheMigrationTo('SameStateTwo');
+
+        $this->thenTheNewStateShouldBe('SameStateTwo');
+        $this->thenTheExecutedStepsShouldBe(array());
     }
 
     public function testMigrateDown() {
@@ -125,8 +134,8 @@ class MigraterTest extends Specification {
         $this->assertEquals($str, $this->state);
     }
 
-    private function thenTheExecutedStepsShouldBe($str) {
-        $this->assertEquals($str, self::$executed);
+    private function thenTheExecutedStepsShouldBe($array) {
+        $this->assertEquals($array, self::$executed);
     }
 
 }

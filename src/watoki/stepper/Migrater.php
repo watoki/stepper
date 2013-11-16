@@ -44,13 +44,17 @@ class Migrater {
      * @return void
      */
     public function migrate($to = null) {
+        if ($to && $this->state == $to) {
+            return;
+        }
+
         $current = $this->toCurrentState();
 
         do {
             $current->up();
             $last = $current;
             $current = $current->next();
-        } while ($current && (!$to || get_class($last) != $to));
+        } while ($current && get_class($last) != $to);
 
         $this->dispatcher->fire(new MigrationCompletedEvent($last));
     }
