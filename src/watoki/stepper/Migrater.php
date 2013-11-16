@@ -44,7 +44,7 @@ class Migrater {
      * @return void
      */
     public function migrate($to = null) {
-        $current = $this->first;
+        $current = $this->toCurrentState();
 
         do {
             $current->up();
@@ -53,6 +53,22 @@ class Migrater {
         } while ($current);
 
         $this->dispatcher->fire(new MigrationCompletedEvent($last));
+    }
+
+    /**
+     * @return Step
+     */
+    private function toCurrentState() {
+        $current = $this->first;
+
+        if (!$this->state) {
+            return $current;
+        }
+
+        while (get_class($current) != $this->state) {
+            $current = $current->next();
+        }
+        return $current->next();
     }
 
 }

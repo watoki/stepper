@@ -32,8 +32,18 @@ class MigraterTest extends Specification {
         $this->thenTheExecutedStepsShouldBe(array('StepOneOfTwoUp', 'StepTwoOfTwoUp'));
     }
 
-    public function testWithCurrentStep() {
-        $this->markTestIncomplete();
+    public function testWithState() {
+        $this->givenTheCurrentStateIs('WithStateTwo');
+
+        $this->givenTheStep_WithTheNextStep('WithStateOne', 'WithStateTwo');
+        $this->givenTheStep_WithTheNextStep('WithStateTwo', 'WithStateThree');
+        $this->givenTheStep_WithTheNextStep('WithStateThree', 'WithStateFour');
+        $this->givenTheStep('WithStateFour');
+
+        $this->whenIStartTheMigration();
+
+        $this->thenTheNewStateShouldBe('WithStateFour');
+        $this->thenTheExecutedStepsShouldBe(array('WithStateThreeUp', 'WithStateFourUp'));
     }
 
     public function testMigrateUpToTarget() {
@@ -52,6 +62,10 @@ class MigraterTest extends Specification {
         $this->markTestIncomplete();
     }
 
+    public function testExceptionWhileMigrating() {
+        $this->markTestIncomplete();
+    }
+
     protected function setUp() {
         parent::setUp();
         self::$executed = array();
@@ -59,6 +73,10 @@ class MigraterTest extends Specification {
 
     private function givenTheStep($step) {
         $this->givenTheStep_WithTheNextStep($step, null);
+    }
+
+    private function givenTheCurrentStateIs($step) {
+        $this->state = $step;
     }
 
     private function givenTheStep_WithTheNextStep($step, $next) {
@@ -83,7 +101,7 @@ class MigraterTest extends Specification {
     private function whenIStartTheMigration() {
         $stepName = $this->firstStep;
         $step = new $stepName;
-        $migrater = new Migrater($step, null);
+        $migrater = new Migrater($step, $this->state);
 
         $that = $this;
         $migrater->on(MigrationCompletedEvent::$CLASS, function (MigrationCompletedEvent $e) use ($that) {
