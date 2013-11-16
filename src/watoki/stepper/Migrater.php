@@ -44,8 +44,15 @@ class Migrater {
      * @return void
      */
     public function migrate($to = null) {
-        $this->first->up();
-        $this->dispatcher->fire(new MigrationCompletedEvent($this->first));
+        $current = $this->first;
+
+        do {
+            $current->up();
+            $last = $current;
+            $current = $current->next();
+        } while ($current);
+
+        $this->dispatcher->fire(new MigrationCompletedEvent($last));
     }
 
 }

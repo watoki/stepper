@@ -23,7 +23,13 @@ class MigraterTest extends Specification {
     }
 
     public function testTwoSteps() {
-        $this->markTestIncomplete();
+        $this->givenTheStep_WithTheNextStep('StepOneOfTwo', 'StepTwoOfTwo');
+        $this->givenTheStep('StepTwoOfTwo');
+
+        $this->whenIStartTheMigration();
+
+        $this->thenTheNewStateShouldBe('StepTwoOfTwo');
+        $this->thenTheExecutedStepsShouldBe(array('StepOneOfTwoUp', 'StepTwoOfTwoUp'));
     }
 
     public function testWithCurrentStep() {
@@ -52,8 +58,14 @@ class MigraterTest extends Specification {
     }
 
     private function givenTheStep($step) {
+        $this->givenTheStep_WithTheNextStep($step, null);
+    }
+
+    private function givenTheStep_WithTheNextStep($step, $next) {
         eval('  class ' . $step . ' implements \watoki\stepper\Step {
-                    public function next() {}
+                    public function next() {
+                        ' . ($next ? "return new $next;" : '') . '
+                    }
                     public function up() {
                         \spec\watoki\stepper\MigraterTest::$executed[] = "' . $step . 'Up";
                     }
