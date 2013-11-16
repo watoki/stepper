@@ -50,7 +50,7 @@ class Migrater {
             $current->up();
             $last = $current;
             $current = $current->next();
-        } while ($current);
+        } while ($current && (!$to || get_class($last) != $to));
 
         $this->dispatcher->fire(new MigrationCompletedEvent($last));
     }

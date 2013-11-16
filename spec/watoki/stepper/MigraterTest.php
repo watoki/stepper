@@ -47,10 +47,17 @@ class MigraterTest extends Specification {
     }
 
     public function testMigrateUpToTarget() {
-        $this->markTestIncomplete();
+        $this->givenTheStep_WithTheNextStep('TargetOne', 'TargetTwo');
+        $this->givenTheStep_WithTheNextStep('TargetTwo', 'TargetThree');
+        $this->givenTheStep('TargetThree');
+
+        $this->whenIStartTheMigrationTo('TargetTwo');
+
+        $this->thenTheNewStateShouldBe('TargetTwo');
+        $this->thenTheExecutedStepsShouldBe(array('TargetOneUp', 'TargetTwoUp'));
     }
 
-    public function testMigrateToCurrent() {
+    public function testTargetIsCurrentState() {
         $this->markTestIncomplete();
     }
 
@@ -99,6 +106,10 @@ class MigraterTest extends Specification {
     }
 
     private function whenIStartTheMigration() {
+        $this->whenIStartTheMigrationTo(null);
+    }
+
+    private function whenIStartTheMigrationTo($target) {
         $stepName = $this->firstStep;
         $step = new $stepName;
         $migrater = new Migrater($step, $this->state);
@@ -107,7 +118,7 @@ class MigraterTest extends Specification {
         $migrater->on(MigrationCompletedEvent::$CLASS, function (MigrationCompletedEvent $e) use ($that) {
             $that->state = $e->getNewState();
         });
-        $migrater->migrate();
+        $migrater->migrate($target);
     }
 
     private function thenTheNewStateShouldBe($str) {
