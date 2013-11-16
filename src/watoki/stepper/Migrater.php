@@ -2,6 +2,7 @@
 namespace watoki\stepper;
  
 use watoki\smokey\EventDispatcher;
+use watoki\stepper\events\MigrationCompletedEvent;
 
 class Migrater {
 
@@ -43,6 +44,8 @@ class Migrater {
      * @return void
      */
     public function migrate($to = null) {
+        $this->first->up();
+        $this->dispatcher->fire(new MigrationCompletedEvent($this->first));
     }
 
 }
