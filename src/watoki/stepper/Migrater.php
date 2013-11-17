@@ -46,7 +46,7 @@ class Migrater {
     public function migrate($to = null) {
         $steps = $this->collectSteps();
 
-        $fromIndex = $this->findFromINdex($steps);
+        $fromIndex = $this->findFromIndex($steps);
         $toIndex = $this->findToIndex($to, $steps);
 
         if ($toIndex > $fromIndex) {
@@ -75,7 +75,7 @@ class Migrater {
         return $steps;
     }
 
-    private function findFromINdex($steps) {
+    private function findFromIndex($steps) {
         foreach ($steps as $index => $step) {
             if (get_class($step) == $this->state) {
                 return $index;
