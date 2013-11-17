@@ -46,57 +46,89 @@ class Migrater {
     public function migrate($to = null) {
         $steps = $this->collectSteps();
 
-        $toIndex = count($steps) - 1;
-        $fromIndex = -1;
-        foreach ($steps as $i => $step) {
-            if (get_class($step) == $to) {
-                $toIndex = $i;
-            }
-            if (get_class($step) == $this->state) {
-                $fromIndex = $i;
-            }
-        }
-
-        if ($this->state && $fromIndex < 0) {
-            throw new \Exception('Cannot migrate. Invalid state: [' . $this->state . ']');
-        }
-        if ($to && get_class($steps[$toIndex]) != $to) {
-            throw new \Exception('Cannot migrate. Invalid target: [' . $to . ']');
-        }
-
-        if ($toIndex == $fromIndex) {
-            return;
-        }
+        $fromIndex = $this->findFromINdex($steps);
+        $toIndex = $this->findToIndex($to, $steps);
 
         if ($toIndex > $fromIndex) {
-            for ($i = $fromIndex + 1; $i <= $toIndex; $i++) {
-                $steps[$i]->up();
-            }
+            $this->stepUp($fromIndex, $toIndex, $steps);
         } else if ($toIndex < $fromIndex) {
-            for ($i = $fromIndex; $i > $toIndex; $i--) {
-                if (!$steps[$i]->canBeUndone()) {
-                    throw new \Exception('Cannot migrate down. Step [' . get_class($steps[$i]) . '] cannot be undone.');
-                }
-            }
-            for ($i = $fromIndex; $i > $toIndex; $i--) {
-                $steps[$i]->down();
-            }
+            $this->stepDown($fromIndex, $toIndex, $steps);
+        } else {
+            return;
         }
 
         $this->dispatcher->fire(new MigrationCompletedEvent($steps[$toIndex]));
     }
 
-    /**
-     * @return array|Step[]
-     */
     private function collectSteps() {
         $step = $this->first;
         $steps = array();
         while ($step) {
             $steps[] = $step;
-            $step = $step->next();
+            $next = $step->next();
+
+            if (in_array($next, $steps)) {
+                throw new \Exception('Circular step detected: [' . get_class($step) . ']');
+            }
+            $step = $next;
         }
         return $steps;
+    }
+
+    private function findFromINdex($steps) {
+        foreach ($steps as $index => $step) {
+            if (get_class($step) == $this->state) {
+                return $index;
+            }
+        }
+
+        if ($this->state) {
+            throw new \Exception('Cannot migrate. Invalid state: [' . $this->state . ']');
+        }
+
+        return -1;
+    }
+
+    private function findToIndex($to, $steps) {
+        foreach ($steps as $index => $step) {
+            if (get_class($step) == $to) {
+                return $index;
+            }
+        }
+
+        if ($to) {
+            throw new \Exception('Cannot migrate. Invalid target: [' . $to . ']');
+        }
+
+        return count($steps) - 1;
+    }
+
+    /**
+     * @param $fromIndex
+     * @param $toIndex
+     * @param Step[] $steps
+     */
+    private function stepUp($fromIndex, $toIndex, $steps) {
+        for ($i = $fromIndex + 1; $i <= $toIndex; $i++) {
+            $steps[$i]->up();
+        }
+    }
+
+    /**
+     * @param $fromIndex
+     * @param $toIndex
+     * @param Step[] $steps
+     * @throws \Exception
+     */
+    private function stepDown($fromIndex, $toIndex, $steps) {
+        for ($i = $fromIndex; $i > $toIndex; $i--) {
+            if (!$steps[$i]->canBeUndone()) {
+                throw new \Exception('Cannot migrate down. Step [' . get_class($steps[$i]) . '] cannot be undone.');
+            }
+        }
+        for ($i = $fromIndex; $i > $toIndex; $i--) {
+            $steps[$i]->down();
+        }
     }
 
 }

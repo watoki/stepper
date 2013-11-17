@@ -112,7 +112,13 @@ class MigraterTest extends Specification {
     }
 
     public function testCircularSteps() {
-        $this->markTestIncomplete();
+        $this->givenTheStep_WithTheNextStep('CircularOne', 'CircularTwo');
+        $this->givenTheStep_WithTheNextStep('CircularTwo', 'CircularThree');
+        $this->givenTheStep_WithTheNextStep('CircularThree', 'CircularOne');
+
+        $this->whenITryToMigrationTo('CircularThree');
+
+        $this->thenAnExceptionContaining_ShouldBeThrown('Circular step detected: [CircularThree]');
     }
 
     public $state;
