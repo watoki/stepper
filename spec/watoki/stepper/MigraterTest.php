@@ -89,11 +89,18 @@ class MigraterTest extends Specification {
         $this->thenAnExceptionContaining_ShouldBeThrown('Cannot migrate down. Step [ImpossibleTwo] cannot be undone.');
     }
 
-    public function testExceptionWhileMigrating() {
-        $this->markTestIncomplete();
+    public function testInvalidState() {
+        $this->givenTheCurrentStateIs('invalid');
+
+        $this->givenTheStep_WithTheNextStep('InvalidStateOne', 'InvalidStateTwo');
+        $this->givenTheStep('InvalidStateTwo');
+
+        $this->whenITryToMigrationTo('InvalidStateTwo');
+
+        $this->thenAnExceptionContaining_ShouldBeThrown('Cannot migrate. Invalid state: [invalid]');
     }
 
-    public function testInvalidState() {
+    public function testInvalidTarget() {
         $this->markTestIncomplete();
     }
 

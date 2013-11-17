@@ -57,6 +57,10 @@ class Migrater {
             }
         }
 
+        if ($this->state && $fromIndex < 0) {
+            throw new \Exception('Cannot migrate. Invalid state: [' . $this->state . ']');
+        }
+
         if ($toIndex == $fromIndex) {
             return;
         }
