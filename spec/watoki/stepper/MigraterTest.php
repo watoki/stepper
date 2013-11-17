@@ -7,12 +7,6 @@ use watoki\stepper\Migrater;
 
 class MigraterTest extends Specification {
 
-    public $state;
-
-    public static $executed;
-
-    private $firstStep;
-
     public function testSingleStep() {
         $this->givenTheStep('OnlyOne');
 
@@ -84,7 +78,15 @@ class MigraterTest extends Specification {
     }
 
     public function testImpossibleDownMigration() {
-        $this->markTestIncomplete();
+        $this->givenTheCurrentStateIs('ImpossibleThree');
+
+        $this->givenTheStep_WithTheNextStep('ImpossibleOne', 'ImpossibleTwo');
+        $this->givenTheStep_WithTheNextStep_WhichCannotBeUndone('ImpossibleTwo', 'ImpossibleThree');
+        $this->givenTheStep('ImpossibleThree');
+
+        $this->whenITryToMigrationTo('ImpossibleOne');
+
+        $this->thenAnExceptionContaining_ShouldBeThrown('Cannot migrate down. Step [ImpossibleTwo] cannot be undone.');
     }
 
     public function testExceptionWhileMigrating() {
@@ -99,6 +101,15 @@ class MigraterTest extends Specification {
         $this->markTestIncomplete();
     }
 
+    public $state;
+
+    public static $executed;
+
+    private $firstStep;
+
+    /** @var \Exception */
+    private $caught;
+
     protected function setUp() {
         parent::setUp();
         self::$executed = array();
@@ -112,7 +123,11 @@ class MigraterTest extends Specification {
         $this->state = $step;
     }
 
-    private function givenTheStep_WithTheNextStep($step, $next) {
+    private function givenTheStep_WithTheNextStep_WhichCannotBeUndone($step, $next) {
+        $this->givenTheStep_WithTheNextStep($step, $next, false);
+    }
+
+    private function givenTheStep_WithTheNextStep($step, $next, $canBeUndone = true) {
         eval('  class ' . $step . ' implements \watoki\stepper\Step {
                     public function next() {
                         ' . ($next ? "return new $next;" : '') . '
@@ -123,7 +138,9 @@ class MigraterTest extends Specification {
                     public function down() {
                         \spec\watoki\stepper\MigraterTest::$executed[] = "' . $step . 'Down";
                     }
-                    public function canBeUndone() {}
+                    public function canBeUndone() {
+                        return ' . ($canBeUndone ? 'true' : 'false') . ';
+                    }
                 }');
 
         if (!$this->firstStep) {
@@ -133,6 +150,14 @@ class MigraterTest extends Specification {
 
     private function whenIStartTheMigration() {
         $this->whenIStartTheMigrationTo(null);
+    }
+
+    private function whenITryToMigrationTo($target) {
+        try {
+            $this->whenIStartTheMigrationTo($target);
+        } catch (\Exception $e) {
+            $this->caught = $e;
+        }
     }
 
     private function whenIStartTheMigrationTo($target) {
@@ -153,6 +178,11 @@ class MigraterTest extends Specification {
 
     private function thenTheExecutedStepsShouldBe($array) {
         $this->assertEquals($array, self::$executed);
+    }
+
+    private function thenAnExceptionContaining_ShouldBeThrown($string) {
+        $this->assertNotNull($this->caught, 'Expected Exception was not thrown.');
+        $this->assertContains($string, $this->caught->getMessage());
     }
 
 }

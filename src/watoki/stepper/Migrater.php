@@ -67,6 +67,11 @@ class Migrater {
             }
         } else if ($toIndex < $fromIndex) {
             for ($i = $fromIndex; $i > $toIndex; $i--) {
+                if (!$steps[$i]->canBeUndone()) {
+                    throw new \Exception('Cannot migrate down. Step [' . get_class($steps[$i]) . '] cannot be undone.');
+                }
+            }
+            for ($i = $fromIndex; $i > $toIndex; $i--) {
                 $steps[$i]->down();
             }
         }
