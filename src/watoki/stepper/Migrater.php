@@ -2,6 +2,8 @@
 namespace watoki\stepper;
  
 use watoki\smokey\EventDispatcher;
+use watoki\stepper\events\MigrateDownEvent;
+use watoki\stepper\events\MigrateUpEvent;
 use watoki\stepper\events\MigrationCompletedEvent;
 
 class Migrater {
@@ -24,6 +26,8 @@ class Migrater {
     function __construct(Step $first, $state) {
         $this->first = $first;
         $this->state = $state;
+
+        $this->dispatcher = new EventDispatcher();
     }
 
     /**
@@ -32,9 +36,6 @@ class Migrater {
      * @param callable $listener
      */
     public function on($event, $listener) {
-        if (!$this->dispatcher) {
-            $this->dispatcher = new EventDispatcher();
-        }
         $this->dispatcher->addListener($event, $listener);
     }
 
@@ -110,6 +111,7 @@ class Migrater {
      */
     private function stepUp($fromIndex, $toIndex, $steps) {
         for ($i = $fromIndex + 1; $i <= $toIndex; $i++) {
+            $this->dispatcher->fire(new MigrateUpEvent($steps[$i]));
             $steps[$i]->up();
         }
     }
@@ -127,6 +129,7 @@ class Migrater {
             }
         }
         for ($i = $fromIndex; $i > $toIndex; $i--) {
+            $this->dispatcher->fire(new MigrateDownEvent($steps[$i]));
             $steps[$i]->down();
         }
     }

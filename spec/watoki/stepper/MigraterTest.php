@@ -1,14 +1,18 @@
 <?php
 namespace spec\watoki\stepper;
 
+use spec\watoki\stepper\fixtures\StepFixture;
 use watoki\scrut\Specification;
 use watoki\stepper\events\MigrationCompletedEvent;
 use watoki\stepper\Migrater;
 
+/**
+ * @property StepFixture step <-
+ */
 class MigraterTest extends Specification {
 
     public function testSingleStep() {
-        $this->givenTheStep('OnlyOne');
+        $this->step->givenTheStep('OnlyOne');
 
         $this->whenIStartTheMigration();
 
@@ -17,8 +21,8 @@ class MigraterTest extends Specification {
     }
 
     public function testTwoSteps() {
-        $this->givenTheStep_WithTheNextStep('StepOneOfTwo', 'StepTwoOfTwo');
-        $this->givenTheStep('StepTwoOfTwo');
+        $this->step->givenTheStep_WithTheNextStep('StepOneOfTwo', 'StepTwoOfTwo');
+        $this->step->givenTheStep('StepTwoOfTwo');
 
         $this->whenIStartTheMigration();
 
@@ -29,10 +33,10 @@ class MigraterTest extends Specification {
     public function testWithState() {
         $this->givenTheCurrentStateIs('WithStateTwo');
 
-        $this->givenTheStep_WithTheNextStep('WithStateOne', 'WithStateTwo');
-        $this->givenTheStep_WithTheNextStep('WithStateTwo', 'WithStateThree');
-        $this->givenTheStep_WithTheNextStep('WithStateThree', 'WithStateFour');
-        $this->givenTheStep('WithStateFour');
+        $this->step->givenTheStep_WithTheNextStep('WithStateOne', 'WithStateTwo');
+        $this->step->givenTheStep_WithTheNextStep('WithStateTwo', 'WithStateThree');
+        $this->step->givenTheStep_WithTheNextStep('WithStateThree', 'WithStateFour');
+        $this->step->givenTheStep('WithStateFour');
 
         $this->whenIStartTheMigration();
 
@@ -41,9 +45,9 @@ class MigraterTest extends Specification {
     }
 
     public function testMigrateUpToTarget() {
-        $this->givenTheStep_WithTheNextStep('TargetOne', 'TargetTwo');
-        $this->givenTheStep_WithTheNextStep('TargetTwo', 'TargetThree');
-        $this->givenTheStep('TargetThree');
+        $this->step->givenTheStep_WithTheNextStep('TargetOne', 'TargetTwo');
+        $this->step->givenTheStep_WithTheNextStep('TargetTwo', 'TargetThree');
+        $this->step->givenTheStep('TargetThree');
 
         $this->whenIStartTheMigrationTo('TargetTwo');
 
@@ -54,9 +58,9 @@ class MigraterTest extends Specification {
     public function testTargetIsCurrentState() {
         $this->givenTheCurrentStateIs('SameStateTwo');
 
-        $this->givenTheStep_WithTheNextStep('SameStateOne', 'SameStateTwo');
-        $this->givenTheStep_WithTheNextStep('SameStateTwo', 'SameStateThree');
-        $this->givenTheStep('SameStateThree');
+        $this->step->givenTheStep_WithTheNextStep('SameStateOne', 'SameStateTwo');
+        $this->step->givenTheStep_WithTheNextStep('SameStateTwo', 'SameStateThree');
+        $this->step->givenTheStep('SameStateThree');
 
         $this->whenIStartTheMigrationTo('SameStateTwo');
 
@@ -67,9 +71,9 @@ class MigraterTest extends Specification {
     public function testMigrateDown() {
         $this->givenTheCurrentStateIs('DownThree');
 
-        $this->givenTheStep_WithTheNextStep('DownOne', 'DownTwo');
-        $this->givenTheStep_WithTheNextStep('DownTwo', 'DownThree');
-        $this->givenTheStep('DownThree');
+        $this->step->givenTheStep_WithTheNextStep('DownOne', 'DownTwo');
+        $this->step->givenTheStep_WithTheNextStep('DownTwo', 'DownThree');
+        $this->step->givenTheStep('DownThree');
 
         $this->whenIStartTheMigrationTo('DownOne');
 
@@ -80,9 +84,9 @@ class MigraterTest extends Specification {
     public function testImpossibleDownMigration() {
         $this->givenTheCurrentStateIs('ImpossibleThree');
 
-        $this->givenTheStep_WithTheNextStep('ImpossibleOne', 'ImpossibleTwo');
-        $this->givenTheStep_WithTheNextStep_WhichCannotBeUndone('ImpossibleTwo', 'ImpossibleThree');
-        $this->givenTheStep('ImpossibleThree');
+        $this->step->givenTheStep_WithTheNextStep('ImpossibleOne', 'ImpossibleTwo');
+        $this->step->givenTheStep_WithTheNextStep_WhichCannotBeUndone('ImpossibleTwo', 'ImpossibleThree');
+        $this->step->givenTheStep('ImpossibleThree');
 
         $this->whenITryToMigrationTo('ImpossibleOne');
 
@@ -92,8 +96,8 @@ class MigraterTest extends Specification {
     public function testInvalidState() {
         $this->givenTheCurrentStateIs('invalid');
 
-        $this->givenTheStep_WithTheNextStep('InvalidStateOne', 'InvalidStateTwo');
-        $this->givenTheStep('InvalidStateTwo');
+        $this->step->givenTheStep_WithTheNextStep('InvalidStateOne', 'InvalidStateTwo');
+        $this->step->givenTheStep('InvalidStateTwo');
 
         $this->whenITryToMigrationTo('InvalidStateTwo');
 
@@ -103,8 +107,8 @@ class MigraterTest extends Specification {
     public function testInvalidTarget() {
         $this->givenTheCurrentStateIs('InvalidTargetOne');
 
-        $this->givenTheStep_WithTheNextStep('InvalidTargetOne', 'InvalidTargetTwo');
-        $this->givenTheStep('InvalidTargetTwo');
+        $this->step->givenTheStep_WithTheNextStep('InvalidTargetOne', 'InvalidTargetTwo');
+        $this->step->givenTheStep('InvalidTargetTwo');
 
         $this->whenITryToMigrationTo('NonExisting');
 
@@ -112,9 +116,9 @@ class MigraterTest extends Specification {
     }
 
     public function testCircularSteps() {
-        $this->givenTheStep_WithTheNextStep('CircularOne', 'CircularTwo');
-        $this->givenTheStep_WithTheNextStep('CircularTwo', 'CircularThree');
-        $this->givenTheStep_WithTheNextStep('CircularThree', 'CircularOne');
+        $this->step->givenTheStep_WithTheNextStep('CircularOne', 'CircularTwo');
+        $this->step->givenTheStep_WithTheNextStep('CircularTwo', 'CircularThree');
+        $this->step->givenTheStep_WithTheNextStep('CircularThree', 'CircularOne');
 
         $this->whenITryToMigrationTo('CircularThree');
 
@@ -125,8 +129,6 @@ class MigraterTest extends Specification {
 
     public static $executed;
 
-    private $firstStep;
-
     /** @var \Exception */
     private $caught;
 
@@ -135,37 +137,8 @@ class MigraterTest extends Specification {
         self::$executed = array();
     }
 
-    private function givenTheStep($step) {
-        $this->givenTheStep_WithTheNextStep($step, null);
-    }
-
     private function givenTheCurrentStateIs($step) {
         $this->state = $step;
-    }
-
-    private function givenTheStep_WithTheNextStep_WhichCannotBeUndone($step, $next) {
-        $this->givenTheStep_WithTheNextStep($step, $next, false);
-    }
-
-    private function givenTheStep_WithTheNextStep($step, $next, $canBeUndone = true) {
-        eval('  class ' . $step . ' implements \watoki\stepper\Step {
-                    public function next() {
-                        ' . ($next ? "return new $next;" : '') . '
-                    }
-                    public function up() {
-                        \spec\watoki\stepper\MigraterTest::$executed[] = "' . $step . 'Up";
-                    }
-                    public function down() {
-                        \spec\watoki\stepper\MigraterTest::$executed[] = "' . $step . 'Down";
-                    }
-                    public function canBeUndone() {
-                        return ' . ($canBeUndone ? 'true' : 'false') . ';
-                    }
-                }');
-
-        if (!$this->firstStep) {
-            $this->firstStep = $step;
-        }
     }
 
     private function whenIStartTheMigration() {
@@ -181,9 +154,7 @@ class MigraterTest extends Specification {
     }
 
     private function whenIStartTheMigrationTo($target) {
-        $stepName = $this->firstStep;
-        $step = new $stepName;
-        $migrater = new Migrater($step, $this->state);
+        $migrater = new Migrater($this->step->firstStep, $this->state);
 
         $that = $this;
         $migrater->on(MigrationCompletedEvent::$CLASS, function (MigrationCompletedEvent $e) use ($that) {
