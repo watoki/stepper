@@ -44,35 +44,47 @@ class Migrater {
      * @return void
      */
     public function migrate($to = null) {
-        if ($to && $this->state == $to) {
+        $steps = $this->collectSteps();
+
+        $toIndex = count($steps) - 1;
+        $fromIndex = -1;
+        foreach ($steps as $i => $step) {
+            if (get_class($step) == $to) {
+                $toIndex = $i;
+            }
+            if (get_class($step) == $this->state) {
+                $fromIndex = $i;
+            }
+        }
+
+        if ($toIndex == $fromIndex) {
             return;
         }
 
-        $current = $this->toCurrentState();
+        if ($toIndex > $fromIndex) {
+            for ($i = $fromIndex + 1; $i <= $toIndex; $i++) {
+                $steps[$i]->up();
+            }
+        } else if ($toIndex < $fromIndex) {
+            for ($i = $fromIndex; $i > $toIndex; $i--) {
+                $steps[$i]->down();
+            }
+        }
 
-        do {
-            $current->up();
-            $last = $current;
-            $current = $current->next();
-        } while ($current && get_class($last) != $to);
-
-        $this->dispatcher->fire(new MigrationCompletedEvent($last));
+        $this->dispatcher->fire(new MigrationCompletedEvent($steps[$toIndex]));
     }
 
     /**
-     * @return Step
+     * @return array|Step[]
      */
-    private function toCurrentState() {
-        $current = $this->first;
-
-        if (!$this->state) {
-            return $current;
+    private function collectSteps() {
+        $step = $this->first;
+        $steps = array();
+        while ($step) {
+            $steps[] = $step;
+            $step = $step->next();
         }
-
-        while (get_class($current) != $this->state) {
-            $current = $current->next();
-        }
-        return $current->next();
+        return $steps;
     }
 
 }

@@ -71,7 +71,16 @@ class MigraterTest extends Specification {
     }
 
     public function testMigrateDown() {
-        $this->markTestIncomplete();
+        $this->givenTheCurrentStateIs('DownThree');
+
+        $this->givenTheStep_WithTheNextStep('DownOne', 'DownTwo');
+        $this->givenTheStep_WithTheNextStep('DownTwo', 'DownThree');
+        $this->givenTheStep('DownThree');
+
+        $this->whenIStartTheMigrationTo('DownOne');
+
+        $this->thenTheNewStateShouldBe('DownOne');
+        $this->thenTheExecutedStepsShouldBe(array('DownThreeDown', 'DownTwoDown'));
     }
 
     public function testImpossibleDownMigration() {
@@ -79,6 +88,14 @@ class MigraterTest extends Specification {
     }
 
     public function testExceptionWhileMigrating() {
+        $this->markTestIncomplete();
+    }
+
+    public function testInvalidState() {
+        $this->markTestIncomplete();
+    }
+
+    public function testCircularSteps() {
         $this->markTestIncomplete();
     }
 
