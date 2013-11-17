@@ -60,6 +60,9 @@ class Migrater {
         if ($this->state && $fromIndex < 0) {
             throw new \Exception('Cannot migrate. Invalid state: [' . $this->state . ']');
         }
+        if ($to && get_class($steps[$toIndex]) != $to) {
+            throw new \Exception('Cannot migrate. Invalid target: [' . $to . ']');
+        }
 
         if ($toIndex == $fromIndex) {
             return;

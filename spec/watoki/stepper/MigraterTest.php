@@ -101,7 +101,14 @@ class MigraterTest extends Specification {
     }
 
     public function testInvalidTarget() {
-        $this->markTestIncomplete();
+        $this->givenTheCurrentStateIs('InvalidTargetOne');
+
+        $this->givenTheStep_WithTheNextStep('InvalidTargetOne', 'InvalidTargetTwo');
+        $this->givenTheStep('InvalidTargetTwo');
+
+        $this->whenITryToMigrationTo('NonExisting');
+
+        $this->thenAnExceptionContaining_ShouldBeThrown('Cannot migrate. Invalid target: [NonExisting]');
     }
 
     public function testCircularSteps() {
