@@ -38,7 +38,7 @@ class StepperCommand extends DefaultCommand {
      * @param string $to Name of the Step class that should become the current Step
      * @param Console $console []
      */
-    public function doExecute(Console $console, $to = null) {
+    public function doExecute($to = null, Console $console) {
         $console->out->writeLine('Starting migration' . ($to ? ' to [' . $to . ']' : ''));
 
         $this->migrater->on(MigrateUpEvent::$CLASS, function (MigrateEvent $e) use ($console) {

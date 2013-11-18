@@ -2,7 +2,7 @@
 namespace spec\watoki\stepper;
  
 use spec\watoki\stepper\fixtures\StepFixture;
-use watoki\cli\CliApplication;
+use watoki\cli\Console;
 use watoki\cli\writers\ArrayWriter;
 use watoki\scrut\Specification;
 use watoki\stepper\cli\StepperCommand;
@@ -53,11 +53,8 @@ class StepperCommandTest extends Specification {
     private function whenIExecuteTheCommandWithTheStateFile($file) {
         $command = new StepperCommand($this->step->firstStep, $this->tmpDir . $file);
 
-        $app = new CliApplication($command);
         $this->writer = new ArrayWriter();
-        $app->setStandardWriter($this->writer);
-
-        $command->execute($app, array('migrate'));
+        $command->execute(new Console($this->writer), array());
     }
 
     private function thenTheFile_ShouldContain($file, $content) {
