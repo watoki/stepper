@@ -1,8 +1,8 @@
 <?php
 namespace watoki\stepper\cli;
 
-use watoki\cli\CliApplication;
-use watoki\cli\commands\MultiCommand;
+use watoki\cli\commands\DefaultCommand;
+use watoki\cli\Console;
 use watoki\factory\Factory;
 use watoki\stepper\events\MigrateDownEvent;
 use watoki\stepper\events\MigrateEvent;
@@ -11,7 +11,7 @@ use watoki\stepper\events\MigrationCompletedEvent;
 use watoki\stepper\Migrater;
 use watoki\stepper\Step;
 
-class StepperCommand extends MultiCommand {
+class StepperCommand extends DefaultCommand {
 
     /** @var Migrater */
     private $migrater;
@@ -32,33 +32,23 @@ class StepperCommand extends MultiCommand {
         return file_get_contents($stateFile);
     }
 
-    public function execute(CliApplication $app, array $arguments) {
-        $this->migrater->on(MigrateUpEvent::$CLASS, function (MigrateEvent $e) use ($app) {
-            $app->getStdWriter()->writeLine('Migrating up [' . $e->getStepName() . ']');
-        });
-        $this->migrater->on(MigrateDownEvent::$CLASS, function (MigrateEvent $e) use ($app) {
-            $app->getStdWriter()->writeLine('Migrating down [' . $e->getStepName() . ']');
-        });
-
-        parent::execute($app, $arguments);
-    }
-
     /**
-     * Migrates up from current Step to last available Step
-     */
-    public function doMigrate() {
-        $this->app->getStdWriter()->writeLine('Starting migration');
-        $this->migrater->migrate();
-    }
-
-    /**
-     * Migrates up or down from current Step to given Step
+     * Migrates up from current Step to given Step (defaults to last Step)
      *
-     * @param string $stepName Name of the Step class that should become the current Step
+     * @param string $to Name of the Step class that should become the current Step
+     * @param Console $console []
      */
-    public function doMigrateTo($stepName) {
-        $this->app->getStdWriter()->writeLine('Starting migration to [' . $stepName . ']');
-        $this->migrater->migrate($stepName);
+    public function doExecute(Console $console, $to = null) {
+        $console->out->writeLine('Starting migration' . ($to ? ' to [' . $to . ']' : ''));
+
+        $this->migrater->on(MigrateUpEvent::$CLASS, function (MigrateEvent $e) use ($console) {
+            $console->out->writeLine('Migrating up [' . $e->getStepName() . ']');
+        });
+        $this->migrater->on(MigrateDownEvent::$CLASS, function (MigrateEvent $e) use ($console) {
+            $console->out->writeLine('Migrating down [' . $e->getStepName() . ']');
+        });
+
+        $this->migrater->migrate($to);
     }
 
 }
