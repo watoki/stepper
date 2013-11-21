@@ -13,7 +13,7 @@ class Migrater {
     /** @var Step */
     private $first;
 
-    /** @var string */
+    /** @var null|string */
     private $state;
 
     /** @var null|EventDispatcher */
@@ -21,9 +21,9 @@ class Migrater {
 
     /**
      * @param Step $first First step in the chained list of steps
-     * @param string $state Class name of last applied Step
+     * @param null|string $state Class name of last applied Step
      */
-    function __construct(Step $first, $state) {
+    function __construct(Step $first, $state = null) {
         $this->first = $first;
         $this->state = $state;
 
