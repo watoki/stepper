@@ -36,7 +36,7 @@ class StepperCommand extends DefaultCommand {
      * Migrates up from current Step to given Step (defaults to last Step)
      *
      * @param string $to Name of the Step class that should become the current Step
-     * @param Console $console []
+     * @param Console $console [] <-
      */
     public function doExecute($to = null, Console $console) {
         $console->out->writeLine('Starting migration' . ($to ? ' to [' . $to . ']' : ''));
