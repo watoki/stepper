@@ -48,7 +48,11 @@ class StepperCommand extends DefaultCommand {
             $console->out->writeLine('Migrating down [' . $e->getStepName() . ']');
         });
 
-        $this->migrater->migrate($to);
+        if ($to == 'down') {
+            $this->migrater->migrateDown();
+        } else {
+            $this->migrater->migrate($to);
+        }
     }
 
 }

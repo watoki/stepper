@@ -61,6 +61,17 @@ class Migrater {
         $this->dispatcher->fire(new MigrationCompletedEvent($steps[$toIndex]));
     }
 
+    public function migrateDown() {
+        $steps = $this->collectSteps();
+
+        $fromIndex = $this->findFromIndex($steps);
+        $toIndex = count($steps) - 2;
+
+        $this->stepDown($fromIndex, $toIndex, $steps);
+
+        $this->dispatcher->fire(new MigrationCompletedEvent($steps[$toIndex]));
+    }
+
     private function collectSteps() {
         $step = $this->first;
         $steps = array();
