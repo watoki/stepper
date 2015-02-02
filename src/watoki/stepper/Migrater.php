@@ -72,7 +72,21 @@ class Migrater {
         $this->dispatcher->fire(new MigrationCompletedEvent($steps[$toIndex]));
     }
 
-    private function collectSteps() {
+	public function migrateAllDown() {
+		$steps = $this->collectSteps();
+		$steps = array_reverse( $steps );
+
+		/** @var Step[] $steps */
+		foreach ( $steps as $step ) {
+			if (!$step->canBeUndone()) {
+				throw new \Exception('Cannot migrate down. Step [' . get_class($step) . '] cannot be undone.');
+			}
+			$this->dispatcher->fire(new MigrateDownEvent($step));
+			$step->down();
+		}
+	}
+
+	private function collectSteps() {
         $step = $this->first;
         $steps = array();
         while ($step) {
